@@ -1,3 +1,6 @@
+// Variáveis
+const baseUrl = 'https://crudcrud.com/api/d249e2f055dd48aaac05801e40706bcc/funcionario'
+
 // Funções
 const pegarElemento = (id) => document.getElementById(id)
 const apagarTabelaUsuários = () => {
@@ -9,37 +12,43 @@ const apagarTabelaUsuários = () => {
 }
 const criarTabelaUsuarios = (dados) => {
     const sessaoTabela = pegarElemento('section-table-list')
+    // Criação dinâmica da tabela
+    const tabela = document.createElement('table')
+    tabela.id = 'tabela-funcionarios'
+    
+    // Criação do cabeçalho da tabela
+    const tabelaHead = document.createElement('thead')
+    const headLinhaNome = document.createElement('th')
+    const headLinhaEmail = document.createElement('th')
+    const headLinhaAcao = document.createElement('th')
+    
+    headLinhaNome.innerText = "Nome"
+    headLinhaEmail.innerText = "E-mail"
+    headLinhaAcao.innerText = "Ação"
+
+    tabelaHead.appendChild(headLinhaNome)
+    tabelaHead.appendChild(headLinhaEmail)
+    tabelaHead.appendChild(headLinhaAcao)
+    tabela.appendChild(tabelaHead)
+    
+    // Criação do corpo da tabela
+    const tabelaBody = document.createElement('tbody')
+
     if (dados.length == 0){
         // TODO inserir informação que não existe usuários
-        
+        const linhaAviso = document.createElement('tr')
+        linhaAviso.innerHTML = '<td class="table-empty-msg" colspan="3">Não há funcionário cadastrado ainda!!!</td>'
+        tabelaBody.appendChild(linhaAviso)
+        tabela.appendChild(tabelaBody)
+        sessaoTabela.appendChild(tabela)
     }else{
 
-        // Criação dinâmica da tabela
-        const tabela = document.createElement('table')
-        tabela.id = 'tabela-funcionarios'
-        
-        // Criação do cabeçalho da tabela
-        const tabelaHead = document.createElement('thead')
-        const headLinhaNome = document.createElement('th')
-        const headLinhaEmail = document.createElement('th')
-        const headLinhaAcao = document.createElement('th')
-        
-        headLinhaNome.innerText = "Nome"
-        headLinhaEmail.innerText = "E-mail"
-        headLinhaAcao.innerText = "Ação"
-    
-        // Criação do corpo da tabela
-        const tabelaBody = document.createElement('tbody')
-    
         dados.forEach((dado) => {
             let elemento = dadosFuncionarioTabela(dado)
             tabelaBody.appendChild(elemento)
         })
         // Montanto a tabela dinâmicamente
-        tabelaHead.appendChild(headLinhaNome)
-        tabelaHead.appendChild(headLinhaEmail)
-        tabelaHead.appendChild(headLinhaAcao)
-        tabela.appendChild(tabelaHead)
+
         tabela.appendChild(tabelaBody)
         sessaoTabela.appendChild(tabela)
     }
@@ -59,29 +68,32 @@ const dadosFuncionarioTabela = (dado) => {
     return tabelaBodyLinha
 }
 
-// Variáveis
-const baseUrl = 'https://crudcrud.com/api/0469d2885c6247f6b60a2f885d121213/funcionario'
+// Elementos
 const formulario = pegarElemento('add-form-woker')
 
-
+// Eventos
 document.addEventListener('DOMContentLoaded', () => {
     listarFuncionarios()
 })
 
 
 formulario.addEventListener('submit', (e) => {
+    // e.preventDefault()
     const nome = pegarElemento('nome-worker').value
     const email = pegarElemento('email-worker').value
     console.log(nome, email)
     cadastrarCliente(nome, email)
+    apagarTabelaUsuários()
+    listarFuncionarios()
 })
 
 
+// Funções CRUD
+// CREATE
 function cadastrarCliente(nome, email) {
     const header = {
         "Content-Type": "application/json"
     }
-    
     return fetch(baseUrl, {
         method: 'POST',
         headers: header,
@@ -94,18 +106,8 @@ function cadastrarCliente(nome, email) {
     })
 }
 
-function apagarFuncionario(id) {
-    console.log(`${baseUrl}/${id}`)
-    fetch(`${baseUrl}/${id}`, {method: 'DELETE'})
-    .then(response => {
-        console.log(response)
-        if(!response.ok) throw new Error(`Erro ao apagar o funcionário. Status ${response.status}`)
-        apagarTabelaUsuários()
-        listarFuncionarios()
-    }).catch(erro => console.error("Houve um erro ao deletar\n"+erro))
 
-}
-
+// READ
 function listarFuncionarios() {
     fetch(baseUrl)
     .then(response => {
@@ -118,4 +120,18 @@ function listarFuncionarios() {
         console.error(`MEU ERRO FOI ${error}`)
         // TODO Informar que houve um erro na API.
     })
+}
+
+
+// DELETE
+function apagarFuncionario(id) {
+    console.log(`${baseUrl}/${id}`)
+    fetch(`${baseUrl}/${id}`, {method: 'DELETE'})
+    .then(response => {
+        console.log(response)
+        if(!response.ok) throw new Error(`Erro ao apagar o funcionário. Status ${response.status}`)
+        apagarTabelaUsuários()
+        listarFuncionarios()
+    }).catch(erro => console.error("Houve um erro ao deletar\n"+erro))
+
 }
