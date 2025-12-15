@@ -1,10 +1,35 @@
 import { pegarElemento } from "./utils.js"
 
 
-export class ApiFuncionarios {
+class Funcionario {
+    #id
+    #nome
+    #email
+
+    constructor(id, nome, email) {
+        this.#id = id
+        this.#nome = nome
+        this.#email = email
+    }
+
+    get id() {
+        return this.#id
+    }
+
+    get nome() {
+        return this.#nome
+    }
+
+    get email() {
+        return this.#email
+    }
+}
+
+
+class ApiFuncionarios {
     #baseUrl
     // abd7e922dacc49c88811b790d596470b
-    constructor(chaveApi = '4e2677c7d4a6474a9c3830e2c536dbe5') {
+    constructor(chaveApi = '27936a8c1dd343f0bb27c0a104f6d1a6') {
         this.#baseUrl = `https://crudcrud.com/api/${chaveApi}/funcionario`
     }
 
@@ -69,6 +94,7 @@ export class TabelaFuncionarios {
         }   
     }
     dadosFuncionarioTabela(dado) {
+        console.log(dado)
         const tabelaBodyLinha = document.createElement('tr')
         const nome = document.createElement('td')
         const email = document.createElement('td')
@@ -79,7 +105,7 @@ export class TabelaFuncionarios {
         btnDelete.innerText = 'X'
         btnDelete.classList.add('btn-apagar')
         btnDelete.addEventListener('click', () => {
-            this.apagarLinha(dado._id)
+            this.apagarLinha(dado.id)
         })
         btnDeleteTd.appendChild(btnDelete)
         tabelaBodyLinha.appendChild(nome)
@@ -88,11 +114,21 @@ export class TabelaFuncionarios {
         return tabelaBodyLinha
     }
 
+    async carregarDadosFuncionarios() {
+        const dados = await this.#api.listarFuncionarios()
+        this.#listaFuncionarios = []
+        console.log('carregar', dados)
+        dados.map(elemento => {
+            let funcionario = new Funcionario(elemento._id, elemento.nome, elemento.email)
+            this.#listaFuncionarios.push(funcionario)
+        })
+        return this.#listaFuncionarios
+    }
+
     async criarTabelaUsuarios() {
         const sessaoTabela = pegarElemento('section-table-list')
         try {
-            const dados = await this.#api.listarFuncionarios()
-            
+            const dados = await this.carregarDadosFuncionarios()
             if (dados.length == 0){
                 // TODO inserir informação que não existe usuários
                 console.log(this.#api)
