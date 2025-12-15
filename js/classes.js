@@ -1,33 +1,10 @@
 import { pegarElemento } from "./utils.js"
 
-export class Funcionario {
-    #id
-    #nome
-    #email
-    constructor(id, nome, email) {
-        this.#id = id
-        this.#nome = nome
-        this.#email = email
-    }
-
-    get id() {
-        return this.#id
-    }
-
-    get nome() {
-        return this.#nome
-    }
-
-    get email() {
-        return this.#email
-    }
-}
-
 
 export class ApiFuncionarios {
     #baseUrl
-    // 0469d2885c6247f6b60a2f885d121213
-    constructor(chaveApi) {
+    // abd7e922dacc49c88811b790d596470b
+    constructor(chaveApi = '4e2677c7d4a6474a9c3830e2c536dbe5') {
         this.#baseUrl = `https://crudcrud.com/api/${chaveApi}/funcionario`
     }
 
@@ -49,9 +26,6 @@ export class ApiFuncionarios {
     }
     
     async apagarFuncionario(id) {
-        console.log(id)
-        alert("Apagando")
-        console.log(`${this.#baseUrl}/${id}`)
         try {
             const response = await fetch(`${this.#baseUrl}/${id}`, {method: 'DELETE'})
             if(!response.ok) throw new Error(`Erro ao apagar o funcionário. Status ${response.status}`)
@@ -62,7 +36,6 @@ export class ApiFuncionarios {
     }
 
     async listarFuncionarios() {
-        console.log("Listando", this.#baseUrl)
         try {
             const response = await fetch(this.#baseUrl)
             if (!response.ok) throw new Error("Erro ao buscar")
@@ -78,18 +51,23 @@ export class ApiFuncionarios {
 export class TabelaFuncionarios {
     #listaFuncionarios
     #api
-    constructor(chaveApi = 'abd7e922dacc49c88811b790d596470b') {
-        this.#api = new ApiFuncionarios(chaveApi)
-        this.#listaFuncionarios = []
+    constructor() {
+        this.#api = new ApiFuncionarios()
+        this.#listaFuncionarios = [] // "Base de Dados" para economizar nas requisições para a api Work in Progress
+    }
+
+    async adicionarFuncionario(nome, email) {
+        this.apagarTabelaUsuários()
+        await this.#api.cadastrarCliente(nome, email)
+        await this.criarTabelaUsuarios()
     }
 
     apagarTabelaUsuários = () => {
-    const tabela = document.getElementById('tabela-funcionarios')
+        const tabela = document.getElementById('tabela-funcionarios')
         if (tabela) {
             tabela.remove()
         }   
     }
-
     dadosFuncionarioTabela(dado) {
         const tabelaBodyLinha = document.createElement('tr')
         const nome = document.createElement('td')
@@ -112,7 +90,6 @@ export class TabelaFuncionarios {
 
     async criarTabelaUsuarios() {
         const sessaoTabela = pegarElemento('section-table-list')
-        console.log("SESSÃO", sessaoTabela)
         try {
             const dados = await this.#api.listarFuncionarios()
             
@@ -120,9 +97,7 @@ export class TabelaFuncionarios {
                 // TODO inserir informação que não existe usuários
                 console.log(this.#api)
     
-            }else{
-                
-                console.log("Tem dados DADOS BRUTO", dados)
+            }else{                
                 // Criação dinâmica da tabela
                 const tabela = document.createElement('table')
                 tabela.id = 'tabela-funcionarios'
@@ -151,16 +126,17 @@ export class TabelaFuncionarios {
                 tabela.appendChild(tabelaHead)
                 tabela.appendChild(tabelaBody)
                 sessaoTabela.appendChild(tabela)
-                console.log('Cheguei aqui')
             }
         } catch (error) {
             console.error("ESSE ERRO É MEU "+error)
         }
     }
 
-    apagarLinha(id) {
+    async apagarLinha(id) {
+        await this.#api.apagarFuncionario(id)
         this.apagarTabelaUsuários()
-        this.#api.apagarFuncionario(id)
-        this.criarTabelaUsuarios()
+        await this.criarTabelaUsuarios()
+        
+        // location.reload()
     }
 }
